@@ -1,18 +1,24 @@
 ---
-import { buildProjection } from '../lib/cuba';
+import {
+  buildProjection,
+  smoothPath,
+  CUBA_CITIES,
+  CUBA_ROADS,
+} from '../lib/cuba';
 import { farmUrl, type FarmEntry } from '../lib/farms';
 
 /**
  * Carte interactive de Cuba.
- * - Silhouette vectorielle stylisée (contours épais, couleurs naturelles),
- *   « flottant » sans encadré.
+ * - Silhouette vectorielle détaillée (île principale + Isla de la Juventud),
+ *   couleurs naturelles, contour net, « flottant » sans encadré.
+ * - Villes principales et réseau routier stylisé (Carretera Central) en repère.
  * - Un marqueur par ferme, positionné automatiquement depuis ses coordonnées
  *   GPS via la projection partagée `buildProjection`.
  * - Un chemin pointillé relie les fermes dans l'ordre du parcours.
  * - Survol/focus : nom + résumé. Clic : ouverture de la fiche.
  *
- * Les marqueurs sont des éléments HTML superposés à la carte SVG et
- * positionnés en pourcentage : ils restent alignés à toute taille d'écran.
+ * Villes et marqueurs sont des éléments HTML superposés à la carte SVG et
+ * positionnés en pourcentage : tout reste aligné à n'importe quelle taille.
  */
 interface Props {
   farms: FarmEntry[];
@@ -21,29 +27,33 @@ const { farms } = Astro.props;
 
 const { project, outlinePath, width, height } = buildProjection({ width: 1000 });
 
-// Points projetés pour chaque ferme (en unités du viewBox).
+const pct = (x: number, y: number) => ({
+  leftPct: (x / width) * 100,
+  topPct: (y / height) * 100,
+});
+
+// Routes projetées puis lissées.
+const roads = CUBA_ROADS.map((road) => ({
+  kind: road.kind,
+  d: smoothPath(road.points.map(([lon, lat]) => project(lon, lat))),
+}));
+
+// Villes projetées.
+const cities = CUBA_CITIES.map((c) => {
+  const p = project(c.lon, c.lat);
+  return { ...c, ...pct(p.x, p.y) };
+});
+
+// Fermes projetées.
 const points = farms.map((farm) => {
   const p = project(farm.data.lon, farm.data.lat);
-  return {
-    farm,
-    x: p.x,
-    y: p.y,
-    leftPct: (p.x / width) * 100,
-    topPct: (p.y / height) * 100,
-  };
+  return { farm, x: p.x, y: p.y, ...pct(p.x, p.y) };
 });
 
 // Chemin reliant les fermes dans l'ordre.
 const routePath = points
   .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
   .join(' ');
-
-// Repère de la capitale : La Havane (point de référence, non cliquable).
-const havana = project(-82.3666, 23.1136);
-const havanaPos = {
-  leftPct: (havana.x / width) * 100,
-  topPct: (havana.y / height) * 100,
-};
 ---
 
 <div class="map" style={`--map-ratio:${(height / width) * 100}%`}>
@@ -51,34 +61,70 @@ const havanaPos = {
     class="map__svg"
     viewBox={`0 0 ${width} ${height}`}
     role="img"
-    aria-label="Carte de Cuba situant les fermes visitées"
+    aria-label="Carte de Cuba : principales villes, routes et fermes visitées"
     preserveAspectRatio="xMidYMid meet"
   >
     <defs>
       <linearGradient id="islandFill" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#a9bd9d" />
-        <stop offset="100%" stop-color="#7c9670" />
+        <stop offset="0%" stop-color="#e6dabb" />
+        <stop offset="100%" stop-color="#dfd2ae" />
       </linearGradient>
       <filter id="islandShadow" x="-20%" y="-20%" width="140%" height="160%">
         <feDropShadow
           dx="0"
-          dy="10"
-          stdDeviation="14"
-          flood-color="#2c3d26"
-          flood-opacity="0.18"
+          dy="8"
+          stdDeviation="12"
+          flood-color="#6b5b4f"
+          flood-opacity="0.2"
         />
+      </filter>
+      <filter id="seaSoft" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur stdDeviation="11" />
+      </filter>
+      <filter id="seaSharp" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="3.5" />
       </filter>
     </defs>
 
-    <!-- Silhouette de Cuba : remplissage vert, bordure noire simple -->
+    <!-- Halo « mer » en deux couches : large diffuse + liseré côtier marqué -->
+    <path
+      class="sea sea--soft"
+      d={outlinePath}
+      fill="#b9d3c2"
+      stroke="#b9d3c2"
+      stroke-width="40"
+      stroke-linejoin="round"
+      filter="url(#seaSoft)"
+    />
+    <path
+      class="sea sea--sharp"
+      d={outlinePath}
+      fill="#b9d3c2"
+      stroke="#a7c7b5"
+      stroke-width="16"
+      stroke-linejoin="round"
+      filter="url(#seaSharp)"
+    />
+
+    <!-- Silhouette de Cuba : terre sable, liseré brun doux (style « retro ») -->
     <path
       d={outlinePath}
       fill="url(#islandFill)"
-      stroke="#141414"
-      stroke-width="3.5"
+      stroke="#c9b2a6"
+      stroke-width="2.5"
       stroke-linejoin="round"
       filter="url(#islandShadow)"
     />
+
+    <!-- Réseau routier (casing sombre + remplissage clair) -->
+    <g class="roads">
+      {roads.map((r) => (
+        <path class={`road__casing road__casing--${r.kind}`} d={r.d} />
+      ))}
+      {roads.map((r) => (
+        <path class={`road__fill road__fill--${r.kind}`} d={r.d} />
+      ))}
+    </g>
 
     <!-- Chemin reliant les fermes -->
     {
@@ -96,23 +142,26 @@ const havanaPos = {
     }
   </svg>
 
-  <!-- Repère de la capitale : La Havane -->
-  <div
-    class="city"
-    style={`left:${havanaPos.leftPct}%; top:${havanaPos.topPct}%`}
-  >
-    <span class="city__dot" aria-hidden="true"></span>
-    <span class="city__label">La Havane</span>
-  </div>
+  <!-- Villes principales (repères non cliquables) -->
+  <ul class="cities">
+    {
+      cities.map((c) => (
+        <li
+          class:list={['city', { 'city--capital': c.capital, 'city--below': c.labelBelow }]}
+          style={`left:${c.leftPct}%; top:${c.topPct}%`}
+        >
+          <span class="city__dot" aria-hidden="true" />
+          <span class="city__label">{c.name}</span>
+        </li>
+      ))
+    }
+  </ul>
 
-  <!-- Marqueurs (HTML superposé, alignés en %) -->
+  <!-- Marqueurs de fermes (superposés, alignés en %) -->
   <ul class="map__markers">
     {
       points.map(({ farm, leftPct, topPct }, i) => (
-        <li
-          class="marker"
-          style={`left:${leftPct}%; top:${topPct}%`}
-        >
+        <li class="marker" style={`left:${leftPct}%; top:${topPct}%`}>
           <a
             class="marker__hit"
             href={farmUrl(farm)}
@@ -155,6 +204,40 @@ const havanaPos = {
     height: 100%;
     overflow: visible;
   }
+
+  /* Sea halo (couleur eau « retro »), en deux couches -------------------- */
+  .sea--soft {
+    opacity: 0.85;
+  }
+  .sea--sharp {
+    opacity: 0.95;
+  }
+
+  /* Routes (palette « retro » : grands axes dorés, bretelles crème) ----- */
+  .road__casing,
+  .road__fill {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .road__casing--main {
+    stroke: #e9bc62;
+    stroke-width: 4.6;
+  }
+  .road__fill--main {
+    stroke: #f8c967;
+    stroke-width: 2.7;
+  }
+  .road__casing--spur {
+    stroke: #dcd2be;
+    stroke-width: 2.8;
+  }
+  .road__fill--spur {
+    stroke: #f5f1e6;
+    stroke-width: 1.5;
+  }
+
+  /* Chemin des fermes -------------------------------------------------- */
   .map__route {
     animation: routeDraw 30s linear infinite;
   }
@@ -164,48 +247,68 @@ const havanaPos = {
     }
   }
 
-  /* Repère capitale ---------------------------------------------------- */
+  /* Villes ------------------------------------------------------------- */
+  .cities {
+    position: absolute;
+    inset: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
   .city {
     position: absolute;
-    transform: translate(-50%, -50%);
     width: 0;
     height: 0;
-    pointer-events: none;
-    z-index: 1;
   }
   .city__dot {
     position: absolute;
     top: 0;
     left: 0;
     transform: translate(-50%, -50%);
-    width: 9px;
-    height: 9px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    background: #fff;
-    border: 2.5px solid #141414;
+    background: #f5f1e6;
+    border: 2px solid #523735;
   }
-  /* Étiquette à gauche du point (à l'opposé des marqueurs de fermes). */
+  .city--capital .city__dot {
+    width: 11px;
+    height: 11px;
+    border-width: 2.5px;
+    box-shadow: 0 0 0 3px rgba(245, 241, 230, 0.7);
+  }
+  /* Étiquettes : texte brun avec halo crème (style « retro », sans cartouche). */
   .city__label {
     position: absolute;
+    left: 0;
     top: 0;
-    left: -10px;
-    transform: translate(-100%, -50%);
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #141414;
-    background: color-mix(in srgb, var(--beige-50) 82%, transparent);
-    padding: 1px 6px;
-    border-radius: 6px;
+    transform: translate(-50%, calc(-100% - 7px));
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: #523735;
     white-space: nowrap;
+    text-shadow: -1px -1px 0 #f5f1e6, 1px -1px 0 #f5f1e6, -1px 1px 0 #f5f1e6,
+      1px 1px 0 #f5f1e6, 0 0 3px #f5f1e6;
+  }
+  /* Étiquette placée sous le point */
+  .city--below .city__label {
+    transform: translate(-50%, 7px);
+  }
+  .city--capital .city__label {
+    font-size: 0.75rem;
+    font-weight: 800;
   }
 
-  /* Marqueurs ---------------------------------------------------------- */
+  /* Marqueurs de fermes ------------------------------------------------ */
   .map__markers {
     position: absolute;
     inset: 0;
     list-style: none;
     margin: 0;
     padding: 0;
+    z-index: 3;
   }
   .marker {
     position: absolute;
@@ -321,5 +424,13 @@ const havanaPos = {
     opacity: 1;
     visibility: visible;
     transform: translateX(-50%) translateY(0);
+  }
+
+  /* Sur petits écrans : on garde les points, on masque les étiquettes
+     secondaires pour préserver la lisibilité (la capitale reste nommée). */
+  @media (max-width: 640px) {
+    .city:not(.city--capital) .city__label {
+      display: none;
+    }
   }
 </style>
