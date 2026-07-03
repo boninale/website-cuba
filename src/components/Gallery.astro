@@ -1,0 +1,169 @@
+---
+import { Image, getImage } from 'astro:assets';
+import type { FarmImage } from '../lib/images';
+
+/**
+ * Galerie photographique.
+ * - Miniatures dans un ruban à défilement lent automatique (pause au survol).
+ * - Clic : ouverture plein écran (lightbox) avec navigation clavier/tactile.
+ * - Légendes générées automatiquement depuis le nom de fichier.
+ */
+interface Props {
+  images: FarmImage[];
+  group: string;
+}
+const { images, group } = Astro.props;
+
+// Version haute résolution pour l'affichage plein écran.
+const full = await Promise.all(
+  images.map((img) =>
+    getImage({ src: img.src, width: 1800, format: 'webp' }).then((r) => r.src),
+  ),
+);
+
+const lightboxData = images.map((img, i) => ({
+  full: full[i],
+  caption: img.caption,
+}));
+
+// On duplique la liste pour un défilement en boucle continue et fluide.
+const loop = images.length > 2 ? [...images, ...images] : images;
+---
+
+{
+  images.length > 0 && (
+    <section class="gallery" aria-label="Galerie photographique">
+      <div class="gallery__viewport">
+        <ul
+          class="gallery__track"
+          style={`--count:${loop.length}`}
+          data-gallery-track
+        >
+          {loop.map((img, i) => {
+            const index = i % images.length;
+            return (
+              <li class="gallery__item">
+                <button
+                  type="button"
+                  class="gallery__btn"
+                  data-lb-open
+                  data-lb-group={group}
+                  data-lb-index={index}
+                  aria-label={`Agrandir : ${img.caption}`}
+                >
+                  <Image
+                    src={img.src}
+                    alt={img.caption}
+                    widths={[300, 500]}
+                    sizes="300px"
+                    loading="lazy"
+                  />
+                  <span class="gallery__caption">{img.caption}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+      <script
+        type="application/json"
+        data-lb-data={group}
+        set:html={JSON.stringify(lightboxData)}
+      />
+    </section>
+  )
+}
+
+<style>
+  .gallery {
+    margin-block: 1.5rem;
+  }
+  .gallery__viewport {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent,
+      #000 4%,
+      #000 96%,
+      transparent
+    );
+    mask-image: linear-gradient(
+      90deg,
+      transparent,
+      #000 4%,
+      #000 96%,
+      transparent
+    );
+  }
+  .gallery__track {
+    display: flex;
+    gap: 1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0.5rem 0;
+    width: max-content;
+    animation: scroll calc(var(--count) * 5s) linear infinite;
+  }
+  .gallery__track:hover,
+  .gallery__track:focus-within {
+    animation-play-state: paused;
+  }
+  @keyframes scroll {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gallery__track {
+      animation: none;
+      flex-wrap: wrap;
+      width: auto;
+      justify-content: center;
+    }
+  }
+
+  .gallery__item {
+    flex: none;
+  }
+  .gallery__btn {
+    position: relative;
+    display: block;
+    width: 260px;
+    height: 190px;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: zoom-in;
+    background: var(--beige-200);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+  .gallery__btn:hover,
+  .gallery__btn:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+  .gallery__btn :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .gallery__caption {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 1.4rem 0.75rem 0.6rem;
+    font-size: 0.82rem;
+    color: #fff;
+    text-align: left;
+    background: linear-gradient(transparent, rgba(44, 61, 38, 0.82));
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity var(--transition), transform var(--transition);
+  }
+  .gallery__btn:hover .gallery__caption,
+  .gallery__btn:focus-visible .gallery__caption {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>

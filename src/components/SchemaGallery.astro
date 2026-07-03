@@ -1,0 +1,100 @@
+---
+import { Image, getImage } from 'astro:assets';
+import type { FarmImage } from '../lib/images';
+
+/**
+ * Galerie « Schémas et illustrations ».
+ * Affichage plus grand, en grille, SANS défilement automatique.
+ * Agrandissement possible via la lightbox partagée.
+ */
+interface Props {
+  images: FarmImage[];
+  group: string;
+}
+const { images, group } = Astro.props;
+
+const full = await Promise.all(
+  images.map((img) =>
+    getImage({ src: img.src, width: 2000, format: 'webp' }).then((r) => r.src),
+  ),
+);
+const lightboxData = images.map((img, i) => ({
+  full: full[i],
+  caption: img.caption,
+}));
+---
+
+{
+  images.length > 0 && (
+    <section class="schemas">
+      <ul class="schemas__grid">
+        {images.map((img, i) => (
+          <li>
+            <button
+              type="button"
+              class="schemas__btn"
+              data-lb-open
+              data-lb-group={group}
+              data-lb-index={i}
+              aria-label={`Agrandir : ${img.caption}`}
+            >
+              <Image
+                src={img.src}
+                alt={img.caption}
+                widths={[500, 900]}
+                sizes="(max-width: 700px) 100vw, 500px"
+                loading="lazy"
+              />
+              <span class="schemas__caption">{img.caption}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <script
+        type="application/json"
+        data-lb-data={group}
+        set:html={JSON.stringify(lightboxData)}
+      />
+    </section>
+  )
+}
+
+<style>
+  .schemas__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+  .schemas__btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: zoom-in;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+  .schemas__btn:hover,
+  .schemas__btn:focus-visible {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+  .schemas__btn :global(img) {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .schemas__caption {
+    display: block;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-align: left;
+  }
+</style>

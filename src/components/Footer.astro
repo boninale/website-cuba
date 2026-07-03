@@ -1,0 +1,100 @@
+---
+import type { ImageMetadata } from 'astro';
+import { getPartners } from '../lib/partners';
+import { SITE } from '../lib/site';
+const partners = getPartners();
+const year = new Date().getFullYear();
+
+const imgSrc = (img: ImageMetadata | string) =>
+  typeof img === 'string' ? img : img.src;
+---
+
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <div class="site-footer__brand">
+      <strong>{SITE.title}</strong>
+      <p>{SITE.tagline}</p>
+    </div>
+
+    {
+      partners.length > 0 && (
+        <div class="site-footer__partners">
+          <span class="site-footer__label">Nos partenaires</span>
+          <div class="site-footer__logos">
+            {partners.map((p) =>
+              p.href ? (
+                <a
+                  href={p.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${p.name} (nouvel onglet)`}
+                >
+                  <img src={imgSrc(p.img)} alt={`Logo — ${p.name}`} />
+                </a>
+              ) : (
+                <img src={imgSrc(p.img)} alt={`Logo — ${p.name}`} />
+              ),
+            )}
+          </div>
+        </div>
+      )
+    }
+  </div>
+  <div class="site-footer__bar">
+    <div class="container">
+      <span>© {year} — Projet documentaire agroécologie · Cuba</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 4rem;
+    background: var(--green-accent);
+    color: var(--beige-100);
+  }
+  .site-footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: space-between;
+    align-items: center;
+    padding-block: 2.5rem;
+  }
+  .site-footer__brand strong {
+    color: #fff;
+    font-size: 1.1rem;
+  }
+  .site-footer__brand p {
+    margin: 0.3rem 0 0;
+    color: var(--beige-300);
+    max-width: 42ch;
+  }
+  .site-footer__label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--terracotta-soft);
+    margin-bottom: 0.6rem;
+  }
+  .site-footer__logos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  .site-footer__logos img {
+    height: 44px;
+    width: auto;
+    background: var(--beige-50);
+    border-radius: 8px;
+    padding: 4px 8px;
+  }
+  .site-footer__bar {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding-block: 1rem;
+    font-size: 0.85rem;
+    color: var(--beige-300);
+  }
+</style>

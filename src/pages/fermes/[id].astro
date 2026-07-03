@@ -1,0 +1,297 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Gallery from '../../components/Gallery.astro';
+import SchemaGallery from '../../components/SchemaGallery.astro';
+import Lightbox from '../../components/Lightbox.astro';
+import Icon from '../../components/Icon.astro';
+import { getFarms, farmUrl, getNeighbours, type FarmEntry } from '../../lib/farms';
+import { getPhotos, getSchemas } from '../../lib/images';
+
+/**
+ * Génération automatique d'une page par ferme.
+ * Ajouter une ferme (dossier + farm.md + photos + schémas) crée sa page,
+ * son marqueur, son entrée de menu et ses galeries, sans toucher au code.
+ */
+export async function getStaticPaths() {
+  const farms = await getFarms();
+  return farms.map((farm) => ({
+    params: { id: farm.data.id },
+    props: {
+      farm,
+      farms,
+      photos: getPhotos(farm.data.id),
+      schemas: getSchemas(farm.data.id),
+    },
+  }));
+}
+
+interface Props {
+  farm: FarmEntry;
+  farms: FarmEntry[];
+  photos: ReturnType<typeof getPhotos>;
+  schemas: ReturnType<typeof getSchemas>;
+}
+
+const { farm, farms, photos, schemas } = Astro.props;
+const { Content } = await render(farm);
+const { prev, next } = getNeighbours(farms, farm.data.id);
+---
+
+<BaseLayout
+  title={farm.data.name}
+  description={farm.data.summary}
+  active="/fermes"
+>
+  <article class="fiche">
+    <!-- En-tête -->
+    <header class="fiche__header">
+      <div class="container">
+        <a class="fiche__back" href="/">
+          <Icon name="arrow-left" size={18} /> Retour à la carte
+        </a>
+        {
+          farm.data.location && (
+            <p class="fiche__location">
+              <Icon name="map-pin" size={16} /> {farm.data.location}
+            </p>
+          )
+        }
+        <h1 class="fiche__title">{farm.data.name}</h1>
+        {farm.data.summary && <p class="fiche__summary">{farm.data.summary}</p>}
+      </div>
+    </header>
+
+    <!-- Galerie photographique -->
+    {
+      photos.length > 0 && (
+        <section class="fiche__section fiche__section--full">
+          <div class="container">
+            <h2 class="fiche__h2">
+              <Icon name="map" size={20} /> En images
+            </h2>
+          </div>
+          <Gallery images={photos} group={`photos-${farm.data.id}`} />
+        </section>
+      )
+    }
+
+    <!-- Contenu Markdown -->
+    <div class="container">
+      <div class="prose">
+        <Content />
+      </div>
+
+      <!-- Schémas et illustrations -->
+      {
+        schemas.length > 0 && (
+          <section class="fiche__section">
+            <h2 class="fiche__h2">
+              <Icon name="sprout" size={20} /> Schémas et illustrations
+            </h2>
+            <SchemaGallery
+              images={schemas}
+              group={`schemas-${farm.data.id}`}
+            />
+          </section>
+        )
+      }
+    </div>
+
+    <!-- Navigation bas de page -->
+    <nav class="fiche__nav" aria-label="Navigation entre les fermes">
+      <div class="container fiche__nav-inner">
+        {
+          prev ? (
+            <a class="fiche__nav-link fiche__nav-link--prev" href={farmUrl(prev)}>
+              <Icon name="chevron-left" size={20} />
+              <span>
+                <small>Ferme précédente</small>
+                {prev.data.name}
+              </span>
+            </a>
+          ) : (
+            <span class="fiche__nav-link is-empty" />
+          )
+        }
+
+        <a class="btn btn--ghost fiche__nav-map" href="/">
+          <Icon name="map" size={18} /> Retour à la carte
+        </a>
+
+        {
+          next ? (
+            <a class="fiche__nav-link fiche__nav-link--next" href={farmUrl(next)}>
+              <span>
+                <small>Ferme suivante</small>
+                {next.data.name}
+              </span>
+              <Icon name="chevron-right" size={20} />
+            </a>
+          ) : (
+            <span class="fiche__nav-link is-empty" />
+          )
+        }
+      </div>
+    </nav>
+  </article>
+
+  <Lightbox />
+</BaseLayout>
+
+<style>
+  .fiche__header {
+    background: linear-gradient(180deg, var(--green-100), var(--beige-50));
+    border-bottom: 1px solid var(--border);
+    padding-block: clamp(1.5rem, 5vw, 3rem);
+  }
+  .fiche__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--terracotta);
+    margin-bottom: 1rem;
+  }
+  .fiche__back:hover {
+    color: var(--terracotta-dark);
+  }
+  .fiche__location {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0 0 0.3rem;
+  }
+  .fiche__title {
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.02em;
+  }
+  .fiche__summary {
+    font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+    color: var(--green-700);
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  .fiche__section {
+    margin-top: clamp(2rem, 5vw, 3rem);
+  }
+  .fiche__section--full {
+    margin-top: 0;
+    padding-top: clamp(1.5rem, 4vw, 2.5rem);
+  }
+  .fiche__h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.35rem;
+    color: var(--green-900);
+  }
+  .fiche__h2 :global(.icon) {
+    color: var(--terracotta);
+  }
+
+  /* Contenu markdown --------------------------------------------------- */
+  .prose {
+    max-width: 72ch;
+    margin: clamp(2rem, 5vw, 3rem) 0 0;
+    font-size: 1.05rem;
+  }
+  /* La fiche affiche déjà le nom en en-tête : on masque le titre répété. */
+  .prose :global(> h1:first-child) {
+    display: none;
+  }
+  .prose :global(h2) {
+    margin-top: 2rem;
+    font-size: 1.35rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 2px solid var(--green-100);
+  }
+  .prose :global(h3) {
+    margin-top: 1.5rem;
+    font-size: 1.1rem;
+    color: var(--green-700);
+  }
+  .prose :global(p),
+  .prose :global(li) {
+    color: var(--ink);
+  }
+  .prose :global(ul) {
+    padding-left: 1.2rem;
+  }
+  .prose :global(li) {
+    margin-bottom: 0.4rem;
+  }
+  .prose :global(li::marker) {
+    color: var(--terracotta);
+  }
+  .prose :global(a) {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .prose :global(blockquote) {
+    border-left: 4px solid var(--terracotta-soft);
+    margin: 1.2rem 0;
+    padding: 0.4rem 0 0.4rem 1.2rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* Navigation bas de page --------------------------------------------- */
+  .fiche__nav {
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    border-top: 1px solid var(--border);
+    padding-block: 1.5rem;
+  }
+  .fiche__nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .fiche__nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--green-900);
+    font-weight: 600;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .fiche__nav-link--next {
+    justify-content: flex-end;
+    text-align: right;
+  }
+  .fiche__nav-link.is-empty {
+    visibility: hidden;
+  }
+  .fiche__nav-link small {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+  .fiche__nav-link:hover {
+    color: var(--terracotta);
+  }
+  .fiche__nav-map {
+    flex: none;
+  }
+  @media (max-width: 640px) {
+    .fiche__nav-inner {
+      gap: 0.75rem;
+    }
+    .fiche__nav-map {
+      order: 3;
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>

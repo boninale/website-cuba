@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+---
+
+<BaseLayout title="Podcast" active="/podcast">
+  <section class="page container">
+    <p class="page__eyebrow"><Icon name="mic" size={16} /> À écouter</p>
+    <h1>Podcast</h1>
+    <p class="page__lead">
+      Les épisodes audio du projet seront publiés ici : rencontres,
+      témoignages et récits de terrain autour de l'agroécologie cubaine.
+    </p>
+
+    <div class="page__placeholder">
+      <Icon name="mic" size={40} />
+      <p>Les épisodes arrivent bientôt.</p>
+      <a class="btn" href="/">
+        <Icon name="map" size={18} /> Explorer la carte
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .page {
+    max-width: 760px;
+    padding-block: clamp(2rem, 6vw, 4rem);
+  }
+  .page__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--terracotta);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.78rem;
+  }
+  .page h1 {
+    font-size: clamp(1.9rem, 5vw, 2.8rem);
+  }
+  .page__lead {
+    font-size: 1.15rem;
+    color: var(--text-muted);
+    max-width: 55ch;
+  }
+  .page__placeholder {
+    margin-top: 2.5rem;
+    display: grid;
+    place-items: center;
+    gap: 1rem;
+    text-align: center;
+    padding: clamp(2rem, 6vw, 3.5rem);
+    background: var(--surface);
+    border: 1px dashed var(--green-300);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+  }
+  .page__placeholder :global(.icon) {
+    color: var(--green-500);
+  }
+</style>

@@ -1,0 +1,19 @@
+{
+  "name": "fermes-agroecologiques-cuba",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Site interactif des fermes agroécologiques de Cuba",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^5.2.5"
+  },
+  "devDependencies": {
+    "sharp": "^0.33.5"
+  }
+}
