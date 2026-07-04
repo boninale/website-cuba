@@ -4,10 +4,10 @@ name: Finca Coincidencia
 location: Matanzas, Cuba
 lat: 22.862653176397888
 lon: -81.24288228659842
-summary: La finca coincidencia ferme-agllerie, ou l'agroécologie et l'art se cotoient
+summary: La finca coincidencia ferme-gallerie, ou l'agroécologie et l'art se côtoient
 ---
 
-# Finca Delicia
+# Finca Coincidencia
 
 ## Contexte
 

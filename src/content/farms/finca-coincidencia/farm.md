@@ -1,13 +1,13 @@
 ---
-id: finca-delicia
-name: Finca Delicia
+id: finca-coincidencia
+name: Finca Coincidencia
 location: Matanzas, Cuba
-lat: 22.81898453820173 
-lon: -81.0136077171391
-summary: La finca delicia, ferme importante de papaye
+lat: 22.862653176397888
+lon: -81.24288228659842
+summary: La finca coincidencia ferme-gallerie, ou l'agroécologie et l'art se côtoient
 ---
 
-# Finca Delicia
+# Finca Coincidencia
 
 ## Contexte
 

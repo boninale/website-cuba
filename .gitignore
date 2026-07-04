@@ -12,3 +12,4 @@ npm-debug.log*
 # Sources audio brutes (déposées à la racine) : les fichiers réellement servis
 # sont dans public/podcast/. On évite ainsi de committer les doublons volumineux.
 /podcast/
+/farms
