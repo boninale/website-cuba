@@ -7,6 +7,7 @@ import Lightbox from '../../components/Lightbox.astro';
 import Icon from '../../components/Icon.astro';
 import { getFarms, farmUrl, getNeighbours, type FarmEntry } from '../../lib/farms';
 import { getPhotos, getSchemas } from '../../lib/images';
+import { withBase } from '../../lib/url';
 
 /**
  * Génération automatique d'une page par ferme.
@@ -47,7 +48,7 @@ const { prev, next } = getNeighbours(farms, farm.data.id);
     <!-- En-tête -->
     <header class="fiche__header">
       <div class="container">
-        <a class="fiche__back" href="/">
+        <a class="fiche__back" href={withBase('/')}>
           <Icon name="arrow-left" size={18} /> Retour à la carte
         </a>
         {
@@ -115,7 +116,7 @@ const { prev, next } = getNeighbours(farms, farm.data.id);
           )
         }
 
-        <a class="btn btn--ghost fiche__nav-map" href="/">
+        <a class="btn btn--ghost fiche__nav-map" href={withBase('/')}>
           <Icon name="map" size={18} /> Retour à la carte
         </a>
 

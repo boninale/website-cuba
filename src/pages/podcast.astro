@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
+import { withBase } from '../lib/url';
 ---
 
 <BaseLayout title="Podcast" active="/podcast">
@@ -15,7 +16,7 @@ import Icon from '../components/Icon.astro';
     <div class="page__placeholder">
       <Icon name="mic" size={40} />
       <p>Les épisodes arrivent bientôt.</p>
-      <a class="btn" href="/">
+      <a class="btn" href={withBase('/')}>
         <Icon name="map" size={18} /> Explorer la carte
       </a>
     </div>

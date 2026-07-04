@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
+import { withBase } from '../lib/url';
 ---
 
 <BaseLayout title="Notre projet" active="/projet">
@@ -15,7 +16,7 @@ import Icon from '../components/Icon.astro';
     <div class="page__placeholder">
       <Icon name="sprout" size={40} />
       <p>Contenu à venir.</p>
-      <a class="btn" href="/">
+      <a class="btn" href={withBase('/')}>
         <Icon name="map" size={18} /> Découvrir les fermes
       </a>
     </div>

@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { withBase } from './url';
 
 export type FarmEntry = CollectionEntry<'farms'>;
 
@@ -23,9 +24,9 @@ export function farmSlug(farm: FarmEntry): string {
   return farm.data.id;
 }
 
-/** URL de la fiche d'une ferme. */
+/** URL de la fiche d'une ferme (préfixée par le `base` du site). */
 export function farmUrl(farm: FarmEntry): string {
-  return `/fermes/${farmSlug(farm)}/`;
+  return withBase(`/fermes/${farmSlug(farm)}/`);
 }
 
 /** Renvoie les fermes précédente et suivante dans le parcours. */
