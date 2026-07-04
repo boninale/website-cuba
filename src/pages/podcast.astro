@@ -2,6 +2,30 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
 import { withBase } from '../lib/url';
+import { SITE } from '../lib/site';
+
+/**
+ * Page Podcast : introduction, lien Spotify et lecteurs audio par épisode.
+ * Les fichiers audio sont dans `public/podcast/` (servis tels quels).
+ * Ajouter/activer un épisode = déposer le mp3 et compléter la liste ci-dessous.
+ */
+interface Episode {
+  n: number;
+  title: string;
+  /** Chemin du fichier dans public/, ou null si l'épisode est à venir. */
+  file: string | null;
+}
+
+const episodes: Episode[] = [
+  { n: 1, title: 'Le début de notre projet', file: '/podcast/episode-1.mp3' },
+  {
+    n: 2,
+    title: "L'histoire agricole de Cuba et ses répercussions",
+    file: '/podcast/episode-2.mp3',
+  },
+  { n: 3, title: 'Notre voyage sur place', file: '/podcast/episode-3.mp3' },
+  { n: 4, title: 'Conclusions et mot de la fin', file: null },
+];
 ---
 
 <BaseLayout title="Podcast" active="/podcast">
@@ -9,23 +33,63 @@ import { withBase } from '../lib/url';
     <p class="page__eyebrow"><Icon name="mic" size={16} /> À écouter</p>
     <h1>Podcast</h1>
     <p class="page__lead">
-      Les épisodes audio du projet seront publiés ici : rencontres,
-      témoignages et récits de terrain autour de l'agroécologie cubaine.
+      Voici les épisodes de notre podcast dans lesquels nous détaillons notre
+      projet, les résultats de nos recherches et de notre voyage sur place, ainsi
+      que nos opinions sur la situation agricole de Cuba&nbsp;!
     </p>
 
-    <div class="page__placeholder">
-      <Icon name="mic" size={40} />
-      <p>Les épisodes arrivent bientôt.</p>
-      <a class="btn" href={withBase('/')}>
-        <Icon name="map" size={18} /> Explorer la carte
+    <p class="spotify">
+      Vous pouvez également les retrouver sur Spotify :
+      <a
+        class="spotify__link"
+        href={SITE.spotify}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Écouter sur Spotify (nouvel onglet)"
+      >
+        <svg class="spotify__icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.52 17.34c-.24.36-.66.48-1.02.24-2.82-1.74-6.36-2.1-10.56-1.14-.42.12-.78-.18-.9-.54-.12-.42.18-.78.54-.9 4.56-1.02 8.52-.6 11.64 1.32.42.18.48.66.3 1.02zm1.44-3.3c-.3.42-.84.6-1.26.3-3.24-1.98-8.16-2.58-11.94-1.38-.48.12-1.02-.12-1.14-.6-.12-.48.12-1.02.6-1.14 4.38-1.32 9.78-.66 13.5 1.62.42.18.54.78.24 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.1 9.3c-.6.18-1.2-.18-1.38-.72-.18-.6.18-1.2.72-1.38 4.32-1.26 11.34-1.02 15.72 1.62.54.3.72 1.02.42 1.56-.3.48-1.02.66-1.5.36z"
+          ></path>
+        </svg>
       </a>
-    </div>
+    </p>
+
+    <ol class="episodes">
+      {
+        episodes.map((ep) => (
+          <li class:list={['episode', { 'episode--soon': !ep.file }]}>
+            <div class="episode__head">
+              <span class="episode__num">{ep.n}</span>
+              <h2 class="episode__title">
+                Épisode {ep.n} : {ep.title}
+              </h2>
+            </div>
+            {ep.file ? (
+              <audio
+                class="episode__audio"
+                controls
+                preload="none"
+                src={withBase(ep.file)}
+              >
+                Votre navigateur ne prend pas en charge la lecture audio.
+              </audio>
+            ) : (
+              <p class="episode__soon">
+                <Icon name="mic" size={16} /> Bientôt disponible
+              </p>
+            )}
+          </li>
+        ))
+      }
+    </ol>
   </section>
 </BaseLayout>
 
 <style>
   .page {
-    max-width: 760px;
+    max-width: 820px;
     padding-block: clamp(2rem, 6vw, 4rem);
   }
   .page__eyebrow {
@@ -42,23 +106,92 @@ import { withBase } from '../lib/url';
     font-size: clamp(1.9rem, 5vw, 2.8rem);
   }
   .page__lead {
-    font-size: 1.15rem;
-    color: var(--text-muted);
-    max-width: 55ch;
+    font-size: 1.12rem;
+    color: var(--ink);
+    max-width: 62ch;
   }
-  .page__placeholder {
-    margin-top: 2.5rem;
+
+  /* Ligne Spotify ------------------------------------------------------ */
+  .spotify {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 1.25rem;
+  }
+  .spotify__link {
+    display: inline-flex;
+    color: #1db954; /* vert Spotify */
+    transition: transform var(--transition), color var(--transition);
+  }
+  .spotify__link:hover {
+    color: #1ed760;
+    transform: translateY(-1px) scale(1.05);
+  }
+  .spotify__icon {
+    width: 30px;
+    height: 30px;
+    display: block;
+  }
+
+  /* Liste d'épisodes --------------------------------------------------- */
+  .episodes {
+    list-style: none;
+    margin: 2.5rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 1.25rem;
+  }
+  .episode {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: clamp(1rem, 3vw, 1.5rem);
+    box-shadow: var(--shadow-sm);
+  }
+  .episode__head {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+  .episode__num {
+    flex: none;
     display: grid;
     place-items: center;
-    gap: 1rem;
-    text-align: center;
-    padding: clamp(2rem, 6vw, 3.5rem);
-    background: var(--surface);
-    border: 1px dashed var(--green-300);
-    border-radius: var(--radius);
-    color: var(--text-muted);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--green-accent);
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.05rem;
   }
-  .page__placeholder :global(.icon) {
-    color: var(--green-500);
+  .episode__title {
+    margin: 0;
+    font-size: 1.15rem;
+    line-height: 1.3;
+  }
+  .episode__audio {
+    width: 100%;
+    height: 44px;
+  }
+  .episode--soon {
+    opacity: 0.75;
+    border-style: dashed;
+  }
+  .episode__soon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-style: italic;
+  }
+  .episode__soon :global(.icon) {
+    color: var(--terracotta);
   }
 </style>

@@ -4,4 +4,6 @@ export const SITE = {
   shortTitle: 'Cuba',
   tagline:
     "Deux étudiants agronomes à la découverte de Cuba, l'île qui aurait réussi sa transition agro-écologique ?",
+  // ⚠️ À remplacer par l'URL de votre podcast sur Spotify (page du show).
+  spotify: 'https://open.spotify.com/',
 };
