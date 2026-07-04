@@ -5,6 +5,7 @@ location: Matanzas, Cuba
 lat: 22.81898453820173 
 lon: -81.0136077171391
 summary: La finca Delicia, ferme importante de papaye
+order : 2
 ---
 
 # Finca Delicia
