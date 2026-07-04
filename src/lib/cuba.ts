@@ -45,12 +45,19 @@ export interface City {
   lat: number;
   /** Capitale : rendu légèrement plus marqué. */
   capital?: boolean;
+  /** Ville secondaire : point et étiquette plus petits. */
+  minor?: boolean;
   /** Place l'étiquette sous le point plutôt qu'au-dessus (évite les chevauchements). */
   labelBelow?: boolean;
 }
 
-/** Principales villes de Cuba (capitales de province + capitale nationale). */
+/**
+ * Villes de Cuba. Deux niveaux de granularité :
+ * - grandes villes (capitale + capitales de province) ;
+ * - villes secondaires (`minor: true`) : points et étiquettes plus petits.
+ */
 export const CUBA_CITIES: City[] = [
+  // Grandes villes
   { name: 'La Havane', lon: -82.3666, lat: 23.1136, capital: true },
   { name: 'Pinar del Río', lon: -83.6981, lat: 22.4175, labelBelow: true },
   { name: 'Matanzas', lon: -81.5775, lat: 23.0411 },
@@ -64,6 +71,16 @@ export const CUBA_CITIES: City[] = [
   { name: 'Bayamo', lon: -76.6431, lat: 20.3797, labelBelow: true },
   { name: 'Santiago de Cuba', lon: -75.8219, lat: 20.0247, labelBelow: true },
   { name: 'Guantánamo', lon: -75.2092, lat: 20.1444 },
+
+  // Villes secondaires (plus petites)
+  { name: 'Viñales', lon: -83.7126, lat: 22.6156, minor: true },
+  { name: 'Varadero', lon: -81.2519, lat: 23.1567, minor: true },
+  { name: 'Placetas', lon: -79.6554, lat: 22.315, minor: true },
+  { name: 'Trinidad', lon: -79.9847, lat: 21.8033, minor: true, labelBelow: true },
+  { name: 'Cabaiguán', lon: -79.4931, lat: 22.0811, minor: true, labelBelow: true },
+  { name: 'Morón', lon: -78.6265, lat: 22.1084, minor: true },
+  { name: 'Manzanillo', lon: -77.1167, lat: 20.3433, minor: true, labelBelow: true },
+  { name: 'Baracoa', lon: -74.4959, lat: 20.3467, minor: true },
 ];
 
 export interface Road {

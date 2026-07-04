@@ -6,19 +6,19 @@ import {
   CUBA_ROADS,
 } from '../lib/cuba';
 import { farmUrl, type FarmEntry } from '../lib/farms';
+import rawPath from '../data/path.json';
 
 /**
  * Carte interactive de Cuba.
- * - Silhouette vectorielle détaillée (île principale + Isla de la Juventud),
- *   couleurs naturelles, contour net, « flottant » sans encadré.
- * - Villes principales et réseau routier stylisé (Carretera Central) en repère.
- * - Un marqueur par ferme, positionné automatiquement depuis ses coordonnées
- *   GPS via la projection partagée `buildProjection`.
- * - Un chemin pointillé relie les fermes dans l'ordre du parcours.
- * - Survol/focus : nom + résumé. Clic : ouverture de la fiche.
+ * - Silhouette détaillée (île + Isla de la Juventud), palette « retro »,
+ *   halo mer autour des côtes, « flottant » sans encadré.
+ * - Villes principales et réseau routier stylisé (repères).
+ * - Tracé du voyage depuis `src/data/path.json` : chaque entrée a un `id`
+ *   (ordre du parcours) et des coordonnées GPS ; la ligne (pointillés animés)
+ *   relie les points dans l'ordre des `id`.
+ * - Un marqueur par ferme, positionné depuis ses coordonnées GPS.
  *
- * Villes et marqueurs sont des éléments HTML superposés à la carte SVG et
- * positionnés en pourcentage : tout reste aligné à n'importe quelle taille.
+ * Tout passe par la même projection : l'alignement est automatique.
  */
 interface Props {
   farms: FarmEntry[];
@@ -32,7 +32,7 @@ const pct = (x: number, y: number) => ({
   topPct: (y / height) * 100,
 });
 
-// Routes projetées puis lissées.
+// Réseau routier (repère) projeté puis lissé.
 const roads = CUBA_ROADS.map((road) => ({
   kind: road.kind,
   d: smoothPath(road.points.map(([lon, lat]) => project(lon, lat))),
@@ -44,16 +44,23 @@ const cities = CUBA_CITIES.map((c) => {
   return { ...c, ...pct(p.x, p.y) };
 });
 
-// Fermes projetées.
+// Tracé du voyage : entrées de path.json triées par `id`.
+type PathEntry = { id: number; lat: number; lon: number; point?: boolean };
+const pathEntries = Object.values(rawPath as Record<string, PathEntry>).sort(
+  (a, b) => a.id - b.id,
+);
+const pathLine = pathEntries
+  .map((e, i) => {
+    const p = project(e.lon, e.lat);
+    return `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+  })
+  .join(' ');
+
+// Fermes projetées (marqueurs).
 const points = farms.map((farm) => {
   const p = project(farm.data.lon, farm.data.lat);
-  return { farm, x: p.x, y: p.y, ...pct(p.x, p.y) };
+  return { farm, ...pct(p.x, p.y) };
 });
-
-// Chemin reliant les fermes dans l'ordre.
-const routePath = points
-  .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`)
-  .join(' ');
 ---
 
 <div class="map" style={`--map-ratio:${(height / width) * 100}%`}>
@@ -61,7 +68,7 @@ const routePath = points
     class="map__svg"
     viewBox={`0 0 ${width} ${height}`}
     role="img"
-    aria-label="Carte de Cuba : principales villes, routes et fermes visitées"
+    aria-label="Carte de Cuba : villes, routes, tracé du voyage et fermes visitées"
     preserveAspectRatio="xMidYMid meet"
   >
     <defs>
@@ -126,12 +133,12 @@ const routePath = points
       ))}
     </g>
 
-    <!-- Chemin reliant les fermes -->
+    <!-- Tracé du voyage (pointillés animés) -->
     {
-      points.length > 1 && (
+      pathEntries.length > 1 && (
         <path
           class="map__route"
-          d={routePath}
+          d={pathLine}
           fill="none"
           stroke="#d15000"
           stroke-width="3"
@@ -147,7 +154,7 @@ const routePath = points
     {
       cities.map((c) => (
         <li
-          class:list={['city', { 'city--capital': c.capital, 'city--below': c.labelBelow }]}
+          class:list={['city', { 'city--capital': c.capital, 'city--minor': c.minor, 'city--below': c.labelBelow }]}
           style={`left:${c.leftPct}%; top:${c.topPct}%`}
         >
           <span class="city__dot" aria-hidden="true" />
@@ -205,7 +212,7 @@ const routePath = points
     overflow: visible;
   }
 
-  /* Sea halo (couleur eau « retro »), en deux couches -------------------- */
+  /* Halo mer ----------------------------------------------------------- */
   .sea--soft {
     opacity: 0.85;
   }
@@ -237,7 +244,7 @@ const routePath = points
     stroke-width: 1.5;
   }
 
-  /* Chemin des fermes -------------------------------------------------- */
+  /* Tracé du voyage (pointillés animés) -------------------------------- */
   .map__route {
     animation: routeDraw 30s linear infinite;
   }
@@ -278,6 +285,22 @@ const routePath = points
     height: 11px;
     border-width: 2.5px;
     box-shadow: 0 0 0 3px rgba(245, 241, 230, 0.7);
+  }
+  /* Villes secondaires : point et étiquette plus discrets */
+  .city--minor .city__dot {
+    width: 4.5px;
+    height: 4.5px;
+    border-width: 1.5px;
+    border-color: #7a6258;
+  }
+  .city--minor .city__label {
+    font-size: 0.58rem;
+    font-weight: 500;
+    color: #6b564e;
+    transform: translate(-50%, calc(-100% - 5px));
+  }
+  .city--minor.city--below .city__label {
+    transform: translate(-50%, 5px);
   }
   /* Étiquettes : texte brun avec halo crème (style « retro », sans cartouche). */
   .city__label {
