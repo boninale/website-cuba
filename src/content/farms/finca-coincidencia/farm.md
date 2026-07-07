@@ -1,17 +1,11 @@
 ---
-
 id: finca-coincidencia
-
 name: Finca Coincidencia
-
 location: Matanzas, Cuba
-
-lat: 22,86729°
-
-lon: -81,26209°
-
+lat: 22.86729
+lon: -81.26209
 summary: Finca Coincidencia
-
+order : 1
 ---
 
 ## Contexte
@@ -30,15 +24,7 @@ Le système est aussi malin dans le temps. Le bananier pousse vite et sert de «
 
 Ces parcelles sont grandes et productives. Elles montrent que ces systèmes ne se limitent pas au petit jardin et fonctionnent à l'échelle d'une exploitation. Ce qui se transpose n'est pas le trio café-banane-algarrobo, inadapté au climat tempéré, mais les principes : cultiver en étages, choisir des arbres « de service » légumineux, utiliser une culture-abri pour lancer les plantations pérennes, et remplacer des intrants chimiques (herbicides, engrais azotés) par des services rendus par le vivant.
 
-2. Biodigesteur alimenté par les effluents d'élevage
-
-Un biodigesteur est une cuve fermée où des bactéries digèrent le fumier et le lisier sans oxygène. Cette fermentation produit du biogaz, composé surtout de méthane et de CO₂. Ici, ce gaz sert à cuisiner sur la ferme.
-
-L'intérêt est de « boucler la boucle ». Sans traitement, les effluents sont un problème : ils émettent du méthane dans l'air et risquent de polluer les nappes avec des nitrates. Le biodigesteur en tire au contraire deux ressources. D'un côté, de l'énergie. De l'autre, un résidu (le digestat) riche en azote, utilisable comme engrais. En capturant le méthane, on évite qu'il parte dans l'atmosphère, où il réchauffe bien plus que le CO₂. Et la ferme dépend moins des combustibles fossiles et des engrais achetés.
-
-Le dispositif est alimenté par gravité depuis l'étable, ce qui le rend simple et fiable. Cet exemple est directement transposable, y compris sous nos climats : la méthanisation à la ferme est déjà courante. C'est un cas concret d'économie circulaire à l'échelle d'une exploitation, qui referme les cycles du carbone et de l'azote sur place.
-
-3. Organisation des cultures selon la pente (toposéquence)
+- Organisation des cultures selon la pente (toposéquence)
 
 Le terrain est en pente, et les cultures sont réparties du haut vers le bas selon ce que chaque niveau offre : eau, drainage, type de sol. On appelle ça une toposéquence.
 
