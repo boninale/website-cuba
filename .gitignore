@@ -13,5 +13,3 @@ npm-debug.log*
 # sont dans public/podcast/. On évite ainsi de committer les doublons volumineux.
 /podcast/
 /farms
-/src/content/farms/finca-coincidencia
-/src/content/farms/finca-coincidencia/photos-
