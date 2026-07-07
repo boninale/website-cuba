@@ -9,15 +9,47 @@ import { withBase } from '../lib/url';
     <p class="page__eyebrow"><Icon name="leaf" size={16} /> À propos</p>
     <h1>Notre projet</h1>
     <p class="page__lead">
-      Cette section présentera prochainement la démarche, l'équipe et les
-      objectifs du projet documentaire sur l'agroécologie à Cuba.
+      Nous sommes Alexandre et Antonin, deux amis rencontrés en école
+      d'ingénieur, partis à la découverte de Cuba afin d'en apprendre davantage
+      sur son histoire et son agriculture.
     </p>
 
-    <div class="page__placeholder">
-      <Icon name="sprout" size={40} />
-      <p>Contenu à venir.</p>
+    <div class="prose">
+      <p>
+        Au cours de notre voyage, nous avons parcouru l'île, réputée pour avoir
+        développé des pratiques agroécologiques à grande échelle au sein de son
+        système de production agricole. Nous avons rencontré des ingénieurs, des
+        chercheurs, des agriculteurs, ainsi que plus largement des Cubains de
+        tous âges et de tous horizons, afin de mieux comprendre leur manière de
+        vivre et de produire, et de décrypter le fonctionnement du système
+        cubain, souvent présenté comme particulièrement complexe.
+      </p>
+      <p>
+        Notre objectif était de comprendre comment l'histoire de l'île a façonné
+        son agriculture. Nous souhaitions également évaluer dans quelle mesure
+        Cuba avait réellement développé des pratiques agroécologiques originales,
+        et identifier les facteurs qui ont favorisé leur émergence.
+      </p>
+      <p>
+        À travers ce site, nous partageons les comptes rendus des systèmes
+        agricoles innovants que nous avons étudiés, ainsi qu'une série de
+        podcasts retraçant notre expérience, les résultats de nos recherches et
+        nos analyses du système agricole cubain.
+      </p>
+      <p>
+        Nous espérons que ces ressources permettront d'apporter un regard nuancé
+        sur l'agriculture cubaine et contribueront à mieux comprendre les liens
+        étroits entre contexte historique, contraintes économiques et choix
+        techniques dans l'évolution d'un système agricole.
+      </p>
+    </div>
+
+    <div class="page__actions">
       <a class="btn" href={withBase('/')}>
         <Icon name="map" size={18} /> Découvrir les fermes
+      </a>
+      <a class="btn btn--ghost" href={withBase('/podcast/')}>
+        <Icon name="mic" size={18} /> Écouter le podcast
       </a>
     </div>
   </section>
@@ -42,23 +74,25 @@ import { withBase } from '../lib/url';
     font-size: clamp(1.9rem, 5vw, 2.8rem);
   }
   .page__lead {
-    font-size: 1.15rem;
-    color: var(--text-muted);
-    max-width: 55ch;
+    font-size: 1.2rem;
+    color: var(--green-700);
+    max-width: 60ch;
+    font-weight: 500;
   }
-  .page__placeholder {
+  .prose {
+    margin-top: 1.5rem;
+    max-width: 68ch;
+    font-size: 1.05rem;
+    line-height: 1.75;
+  }
+  .prose p {
+    margin: 0 0 1.15rem;
+    color: var(--ink);
+  }
+  .page__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
     margin-top: 2.5rem;
-    display: grid;
-    place-items: center;
-    gap: 1rem;
-    text-align: center;
-    padding: clamp(2rem, 6vw, 3.5rem);
-    background: var(--surface);
-    border: 1px dashed var(--green-300);
-    border-radius: var(--radius);
-    color: var(--text-muted);
-  }
-  .page__placeholder :global(.icon) {
-    color: var(--green-500);
   }
 </style>
