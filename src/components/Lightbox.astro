@@ -32,6 +32,13 @@ import Icon from './Icon.astro';
 
   <figure class="lightbox__figure">
     <img class="lightbox__img" data-lb-img src="" alt="" />
+    <video
+      class="lightbox__video"
+      data-lb-video
+      controls
+      playsinline
+      controlslist="nodownload"
+      hidden></video>
     <figcaption class="lightbox__caption" data-lb-caption></figcaption>
   </figure>
 </div>
@@ -64,7 +71,8 @@ import Icon from './Icon.astro';
     align-items: center;
     gap: 0.75rem;
   }
-  .lightbox__img {
+  .lightbox__img,
+  .lightbox__video {
     max-width: min(1400px, 92vw);
     max-height: 80vh;
     width: auto;
@@ -75,6 +83,13 @@ import Icon from './Icon.astro';
     background: #0002;
     touch-action: pan-y;
     user-select: none;
+  }
+  .lightbox__video {
+    max-width: min(1400px, 92vw);
+  }
+  .lightbox__video[hidden],
+  .lightbox__img[hidden] {
+    display: none;
   }
   .lightbox__caption {
     color: var(--beige-100);
@@ -129,6 +144,7 @@ import Icon from './Icon.astro';
 
 <script>
   interface Slide {
+    type?: 'image' | 'video';
     full: string;
     caption: string;
   }
@@ -137,6 +153,7 @@ import Icon from './Icon.astro';
     const box = document.getElementById('lightbox');
     if (!box) return;
     const imgEl = box.querySelector<HTMLImageElement>('[data-lb-img]')!;
+    const videoEl = box.querySelector<HTMLVideoElement>('[data-lb-video]')!;
     const capEl = box.querySelector<HTMLElement>('[data-lb-caption]')!;
 
     const groups = new Map<string, Slide[]>();
@@ -153,12 +170,28 @@ import Icon from './Icon.astro';
     let index = 0;
     let lastFocus: HTMLElement | null = null;
 
+    const stopVideo = () => {
+      videoEl.pause();
+      videoEl.removeAttribute('src');
+      videoEl.load();
+    };
+
     const render = () => {
       const slide = current[index];
       if (!slide) return;
-      imgEl.src = slide.full;
-      imgEl.alt = slide.caption;
       capEl.textContent = slide.caption;
+      if (slide.type === 'video') {
+        imgEl.hidden = true;
+        imgEl.removeAttribute('src');
+        videoEl.hidden = false;
+        videoEl.src = slide.full;
+      } else {
+        stopVideo();
+        videoEl.hidden = true;
+        imgEl.hidden = false;
+        imgEl.src = slide.full;
+        imgEl.alt = slide.caption;
+      }
     };
 
     const open = (group: string, i: number) => {
@@ -176,6 +209,7 @@ import Icon from './Icon.astro';
     const close = () => {
       box.classList.remove('is-open');
       document.body.style.overflow = '';
+      stopVideo();
       setTimeout(() => {
         box.hidden = true;
         imgEl.src = '';

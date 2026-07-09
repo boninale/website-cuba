@@ -14,6 +14,34 @@ const imgSrc = (img: ImageMetadata | string) =>
     <div class="site-footer__brand">
       <strong>{SITE.title}</strong>
       <p>{SITE.tagline}</p>
+      <a
+        class="site-footer__insta"
+        href={SITE.instagram.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Instagram ${SITE.instagram.handle} (nouvel onglet)`}
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M2 12c0-4.714 0-7.071 1.464-8.536C4.93 2 7.286 2 12 2s7.071 0 8.535 1.464C22 4.93 22 7.286 22 12s0 7.071-1.465 8.535C19.072 22 16.714 22 12 22s-7.071 0-8.536-1.465C2 19.072 2 16.714 2 12Z"
+          />
+          <circle
+            cx="12"
+            cy="12"
+            r="4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+          <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" />
+        </svg>
+        <span>{SITE.instagram.handle}</span>
+      </a>
     </div>
 
     {
@@ -69,6 +97,19 @@ const imgSrc = (img: ImageMetadata | string) =>
     margin: 0.3rem 0 0;
     color: var(--beige-300);
     max-width: 42ch;
+  }
+  .site-footer__insta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.9rem;
+    color: var(--beige-100);
+    font-weight: 600;
+    font-size: 0.92rem;
+    transition: color var(--transition);
+  }
+  .site-footer__insta:hover {
+    color: #fff;
   }
   .site-footer__label {
     display: block;

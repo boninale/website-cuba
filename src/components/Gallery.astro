@@ -1,46 +1,51 @@
 ---
 import { Image, getImage } from 'astro:assets';
-import type { FarmImage } from '../lib/images';
+import type { FarmMedia } from '../lib/images';
 
 /**
- * Galerie photographique.
+ * Galerie photo/vidéo.
  * - Miniatures dans un ruban à défilement lent automatique (pause au survol).
- * - Clic : ouverture plein écran (lightbox) avec navigation clavier/tactile.
+ *   Les vidéos affichent une image d'aperçu + un badge « lecture ».
+ * - Clic : ouverture plein écran (lightbox) — image ou lecteur vidéo.
  * - Légendes générées automatiquement depuis le nom de fichier.
  */
 interface Props {
-  images: FarmImage[];
+  media: FarmMedia[];
   group: string;
 }
-const { images, group } = Astro.props;
+const { media, group } = Astro.props;
 
-// Version haute résolution pour l'affichage plein écran.
-const full = await Promise.all(
-  images.map((img) =>
-    getImage({ src: img.src, width: 1800, format: 'webp' }).then((r) => r.src),
-  ),
+// Données pour la lightbox : URL haute résolution (image) ou URL vidéo.
+const lightboxData = await Promise.all(
+  media.map(async (m) => {
+    if (m.type === 'image') {
+      const full = (await getImage({ src: m.src, width: 1800, format: 'webp' }))
+        .src;
+      return { type: 'image', full, caption: m.caption };
+    }
+    return { type: 'video', full: m.src, caption: m.caption };
+  }),
 );
 
-const lightboxData = images.map((img, i) => ({
-  full: full[i],
-  caption: img.caption,
-}));
-
 // On duplique la liste pour un défilement en boucle continue et fluide.
-const loop = images.length > 2 ? [...images, ...images] : images;
+const loop = media.length > 2 ? [...media, ...media] : media;
 ---
 
 {
-  images.length > 0 && (
-    <section class="gallery" aria-label="Galerie photographique">
+  media.length > 0 && (
+    <section class="gallery" aria-label="Galerie photo et vidéo">
       <div class="gallery__viewport">
         <ul
           class="gallery__track"
           style={`--count:${loop.length}`}
           data-gallery-track
         >
-          {loop.map((img, i) => {
-            const index = i % images.length;
+          {loop.map((m, i) => {
+            const index = i % media.length;
+            const label =
+              m.type === 'video'
+                ? `Lire la vidéo : ${m.caption}`
+                : `Agrandir : ${m.caption}`;
             return (
               <li class="gallery__item">
                 <button
@@ -49,16 +54,34 @@ const loop = images.length > 2 ? [...images, ...images] : images;
                   data-lb-open
                   data-lb-group={group}
                   data-lb-index={index}
-                  aria-label={`Agrandir : ${img.caption}`}
+                  aria-label={label}
                 >
-                  <Image
-                    src={img.src}
-                    alt={img.caption}
-                    widths={[300, 500]}
-                    sizes="300px"
-                    loading="lazy"
-                  />
-                  <span class="gallery__caption">{img.caption}</span>
+                  {m.type === 'image' ? (
+                    <Image
+                      src={m.src}
+                      alt={m.caption}
+                      widths={[300, 500]}
+                      sizes="300px"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <>
+                      <video
+                        class="gallery__video"
+                        src={`${m.src}#t=0.5`}
+                        muted
+                        playsinline
+                        preload="metadata"
+                        tabindex="-1"
+                      />
+                      <span class="gallery__play" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="26" height="26">
+                          <path fill="currentColor" d="M8 5v14l11-7z" />
+                        </svg>
+                      </span>
+                    </>
+                  )}
+                  <span class="gallery__caption">{m.caption}</span>
                 </button>
               </li>
             );
@@ -144,10 +167,33 @@ const loop = images.length > 2 ? [...images, ...images] : images;
     transform: translateY(-3px);
     box-shadow: var(--shadow-md);
   }
-  .gallery__btn :global(img) {
+  .gallery__btn :global(img),
+  .gallery__video {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
+  }
+  /* Badge « lecture » sur les vignettes vidéo */
+  .gallery__play {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    background: rgba(44, 61, 38, 0.55);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    padding-left: 3px;
+    transition: transform var(--transition), background var(--transition);
+  }
+  .gallery__btn:hover .gallery__play,
+  .gallery__btn:focus-visible .gallery__play {
+    transform: scale(1.08);
+    background: var(--terracotta);
   }
   .gallery__caption {
     position: absolute;

@@ -13,3 +13,4 @@ npm-debug.log*
 # sont dans public/podcast/. On évite ainsi de committer les doublons volumineux.
 /podcast/
 /farms
+*.mp4
